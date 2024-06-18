@@ -7,9 +7,11 @@ const {
   deleteProductById,
   patchProductById,
 } = require("./product.service");
+const { verifyToken } = require("../../middlewares/auth");
+const isAdmin = require("../../middlewares/isAdmin");
 const router = express.Router();
 
-router.get("/", async (req, res, next) => {
+router.get("/", verifyToken, async (req, res, next) => {
   const products = await getAllProducts();
   res.send({
     message: "success",
@@ -17,7 +19,7 @@ router.get("/", async (req, res, next) => {
   });
 });
 
-router.get("/:id", async (req, res, next) => {
+router.get("/:id", verifyToken, async (req, res, next) => {
   try {
     const productId = parseInt(req.params.id);
 
@@ -32,7 +34,7 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
-router.post("/", async (req, res, next) => {
+router.post("/", verifyToken, isAdmin, async (req, res, next) => {
   try {
     const newProductsData = req.body;
     const product = await createProduct(newProductsData);
@@ -45,7 +47,7 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-router.patch("/:id", async (req, res, next) => {
+router.patch("/:id", verifyToken, isAdmin, async (req, res, next) => {
   try {
     const productId = parseInt(req.params.id);
     const productData = req.body;
@@ -64,7 +66,7 @@ router.patch("/:id", async (req, res, next) => {
   }
 });
 
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", verifyToken, isAdmin, async (req, res, next) => {
   try {
     const productId = parseInt(req.params.id);
 
