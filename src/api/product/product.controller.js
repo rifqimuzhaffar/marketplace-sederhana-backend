@@ -1,9 +1,16 @@
 const express = require("express");
 const prisma = require("../../database");
+const {
+  getAllProducts,
+  getProductById,
+  createProduct,
+  deleteProductById,
+  patchProductById,
+} = require("./product.service");
 const router = express.Router();
 
 router.get("/", async (req, res, next) => {
-  const products = await prisma.product.findMany();
+  const products = await getAllProducts();
   res.send({
     message: "success",
     data: products,
@@ -11,80 +18,69 @@ router.get("/", async (req, res, next) => {
 });
 
 router.get("/:id", async (req, res, next) => {
-  const productId = req.params.id;
-  const product = await prisma.product.findUnique({
-    where: {
-      id: parseInt(productId),
-    },
-  });
+  try {
+    const productId = parseInt(req.params.id);
 
-  if (!product) {
-    return res.status(400).send({
-      message: "Product not found",
-      data: [],
-    });
+    if (isNaN(productId)) {
+      return res.status(400).send("ID is not a number");
+    }
+
+    const product = await getProductById(productId);
+    res.send(product);
+  } catch (error) {
+    res.status(400).send(error.message);
   }
-
-  res.send({
-    message: "Success",
-    data: product,
-  });
 });
 
 router.post("/", async (req, res, next) => {
-  const newProductsData = req.body;
-
-  const product = await prisma.product.create({
-    data: {
-      title: newProductsData.title,
-      price: newProductsData.price,
-      description: newProductsData.description,
-      img_url: newProductsData.img_url,
-      available: newProductsData.available,
-    },
-  });
-
-  res.status(201).send({
-    message: "Success Add Products",
-    data: [],
-  });
+  try {
+    const newProductsData = req.body;
+    const product = await createProduct(newProductsData);
+    res.status(201).send({
+      message: "Success Add Products",
+      data: product,
+    });
+  } catch (error) {
+    res.status(400).send(error.message);
+  }
 });
 
 router.patch("/:id", async (req, res, next) => {
-  const productId = req.params.id;
-  const productData = req.body;
+  try {
+    const productId = parseInt(req.params.id);
+    const productData = req.body;
 
-  const product = await prisma.product.update({
-    where: {
-      id: parseInt(productId),
-    },
-    data: {
-      title: productData.title,
-      price: productData.price,
-      description: productData.description,
-      img_url: productData.img_url,
-      available: productData.available,
-    },
-  });
-  res.send({
-    message: "Update Product Success",
-    data: product,
-  });
+    if (isNaN(productId)) {
+      return res.status(400).send("ID is not a number");
+    }
+
+    const product = await patchProductById(productId, productData);
+    res.send({
+      message: "Update Product Success",
+      data: product,
+    });
+  } catch (error) {
+    res.status(400).send(error.message);
+  }
 });
 
 router.delete("/:id", async (req, res, next) => {
-  const productId = req.params.id;
+  try {
+    const productId = parseInt(req.params.id);
 
-  await prisma.product.delete({
-    where: {
-      id: parseInt(productId),
-    },
-  });
+    if (isNaN(productId)) {
+      return res.status(400).send("ID is not a number");
+    }
 
-  res.send({
-    message: "Delete Product Success",
-    data: [],
-  });
+    await deleteProductById(productId);
+
+    res.send({
+      message: "Delete Product Success",
+      data: [],
+    });
+  } catch (error) {
+    res.status(404).send(error.message);
+  }
 });
 
 module.exports = router;
