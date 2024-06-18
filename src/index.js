@@ -16,13 +16,11 @@ if (!process.env.JWT_SECRET) {
   process.exit(1);
 }
 
-app.get("/api", (req, res) => {
-  res.send("Hello World");
-});
-
 const authController = require("./auth/auth.controller");
+const productsController = require("./product/product.controller");
 
 app.use("/auth", authController);
+app.use("/products", productsController);
 
 const PORT = process.env.SERVER_PORT;
 app.listen(PORT, () => {
