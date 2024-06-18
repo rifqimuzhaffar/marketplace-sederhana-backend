@@ -1,4 +1,4 @@
-const prisma = require("../database");
+const prisma = require("../../database");
 
 const createUser = async (userData) => {
   return prisma.user.create({

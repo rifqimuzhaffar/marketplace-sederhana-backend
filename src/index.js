@@ -16,8 +16,8 @@ if (!process.env.JWT_SECRET) {
   process.exit(1);
 }
 
-const authController = require("./auth/auth.controller");
-const productsController = require("./product/product.controller");
+const authController = require("./api/auth/auth.controller");
+const productsController = require("./api/product/product.controller");
 
 app.use("/auth", authController);
 app.use("/products", productsController);

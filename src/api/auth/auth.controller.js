@@ -1,8 +1,11 @@
 const express = require("express");
 const { registerUser, loginUser } = require("./auth.service");
+const {
+  validateRegister,
+  validateLogin,
+} = require("../../middlewares/validator");
 
 const router = express.Router();
-const { validateRegister, validateLogin } = require("../middlewares/validator");
 
 router.post("/register", validateRegister, async (req, res, next) => {
   const { username, email, password, role } = req.body;
