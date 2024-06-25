@@ -27,37 +27,46 @@ model User {
 
 model Product {
   id          Int        @id @default(autoincrement())
-  img_url     String
   title       String
   price       Int
   description String
+  img_url     String
   available   Boolean
-  Purchases   Purchase[]
+  purchaseItems PurchaseItem[]
   Carts       Cart[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 }
 
-model Purchase {
-  id         Int       @id @default(autoincrement())
-  nomor_meja String
-  product_id Int
-  amount     Int
-  user_id    Int
-  total_price Int
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-
-  user    User    @relation(fields: [user_id], references: [id])
-  product Product @relation(fields: [product_id], references: [id])
-}
-
 model Cart {
-  id         Int       @id @default(autoincrement())
-  user_id    Int
-  product_id Int
-  amount     Int
-
-  user    User    @relation(fields: [user_id], references: [id])
-  product Product @relation(fields: [product_id], references: [id])
+  id        Int      @id @default(autoincrement())
+  quantity  Int
+  userId    Int
+  productId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
 }
+
+model Purchase {
+  id           Int            @id @default(autoincrement())
+  totalPrice   Float
+  userId       Int
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  user         User           @relation(fields: [userId], references: [id])
+  purchaseItems PurchaseItem[]
+}
+
+model PurchaseItem {
+  id         Int      @id @default(autoincrement())
+  quantity   Int
+  total      Float
+  purchaseId Int
+  productId  Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  purchase   Purchase @relation(fields: [purchaseId], references: [id])
+  product    Product  @relation(fields: [productId], references: [id])
+} 
