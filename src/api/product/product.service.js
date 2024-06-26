@@ -1,4 +1,3 @@
-const prisma = require("../../database");
 const {
   findAllProducts,
   findProductsById,
