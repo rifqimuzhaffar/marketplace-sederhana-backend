@@ -1,5 +1,5 @@
 const express = require("express");
-const app = express();
+const app= express();
 
 const dotenv = require("dotenv");
 dotenv.config();
@@ -21,6 +21,12 @@ const productsController = require("./api/product/product.controller");
 
 app.use("/auth", authController);
 app.use("/products", productsController);
+
+const express = require('express');
+const cartRoutes = require('./routes/cartRoutes');
+
+app.use(express.json());
+app.use('/cart', cartRoutes);
 
 const PORT = process.env.SERVER_PORT;
 app.listen(PORT, () => {
