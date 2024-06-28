@@ -1,6 +1,5 @@
 const { isEmail, isStrongPassword } = require("validator");
 const prisma = require("../database");
-const UserModel = prisma.user;
 
 /**
  * @param {import("express").Request} req
