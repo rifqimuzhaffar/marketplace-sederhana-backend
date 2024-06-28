@@ -1,94 +1,54 @@
 const express = require("express");
 const router = express.Router();
-const prisma = require("../../database");
+const {
+  getAllPurchases,
+  getPurchaseById,
+  createPurchase,
+  patchPurchaseById,
+  deletePurchaseById,
+} = require("./purchase.service");
 
 router.get("/", async (req, res, next) => {
   try {
-    const purchases = await prisma.purchase.findMany({
-      select: {
-        id: true,
-        userId: true,
-        tableNumber: true,
-        createdAt: true,
-        totalPrice: true,
-        status: true,
-        purchaseItems: {
-          select: {
-            product: {
-              select: {
-                id: true,
-                title: true,
-                price: true,
-              },
-            },
-            quantity: true,
-            total: true,
-          },
-        },
-      },
+    const purchases = await getAllPurchases();
+    res.status(200).send({
+      message: "success",
+      data: purchases,
     });
-
-    const formattedPurchases = purchases.map((purchase) => ({
-      purchaseId: purchase.id,
-      userId: purchase.userId,
-      tableNumber: purchase.tableNumber,
-      createdAt: purchase.createdAt,
-      totalPrice: purchase.totalPrice,
-      status: purchase.status,
-      cart: purchase.purchaseItems.map((item) => ({
-        productId: item.product.id,
-        title: item.product.title,
-        quantity: item.quantity,
-        total: item.total,
-      })),
-    }));
-
-    res.status(200).json(formattedPurchases);
   } catch (error) {
-    console.error("Error fetching purchase data:", error);
-    res.status(500).json({ error: "Failed to fetch purchase data" });
+    res.status(500).send({ error: "Failed to fetch purchase data" });
+  }
+});
+
+router.get("/:id", async (req, res, next) => {
+  try {
+    const purchaseId = parseInt(req.params.id);
+
+    if (isNaN(purchaseId)) {
+      return res.status(400).send("ID is not a number");
+    }
+
+    const purchase = await getPurchaseById(purchaseId);
+    res.status(200).send(purchase);
+  } catch (error) {
+    res.status(400).send(error.message);
   }
 });
 
 router.post("/", async (req, res, next) => {
   const { userId, tableNumber, cart, status } = req.body;
-  if (!cart || cart.length === 0) {
-    return res.status(400).send({
-      error: "Cart is required and cannot be empty",
-    });
-  }
-
-  const totalPrice = cart.reduce(
-    (acc, item) => acc + item.quantity * item.product.price,
-    0
-  );
-
   try {
-    const purchase = await prisma.purchase.create({
-      data: {
-        userId: parseInt(userId, 10),
-        tableNumber: tableNumber,
-        totalPrice: parseFloat(totalPrice),
-        status: status || "Requested",
-        purchaseItems: {
-          create: cart.map((item) => ({
-            quantity: item.quantity,
-            total: item.quantity * item.product.price,
-            productId: item.product.id,
-          })),
-        },
-      },
+    const purchase = await createPurchase(userId, tableNumber, cart, status);
+    res.status(201).send({
+      message: "Success Add Purchase",
+      data: purchase,
     });
-
-    await prisma.cart.deleteMany({
-      where: {
-        userId: parseInt(userId, 10),
-      },
-    });
-
-    res.status(201).send(purchase);
   } catch (error) {
-    res.status(500).send({ error: "Failed to create purchase" });
+    if (error.message === "Cart is required and cannot be empty") {
+      res.status(400).send({ error: error.message });
+    } else {
+      res.status(500).send({ error: "Failed to create purchase" });
+    }
   }
 });
 
@@ -96,42 +56,38 @@ router.patch("/:id", async (req, res, next) => {
   const purchaseId = parseInt(req.params.id);
   const purchaseData = req.body;
 
-  if (isNaN(purchaseId)) {
-    return res.status(400).send("ID is not a number");
-  }
+  try {
+    if (isNaN(purchaseId)) {
+      return res.status(400).send("ID is not a number");
+    }
 
-  const purchase = await prisma.purchase.update({
-    where: {
-      id: purchaseId,
-    },
-    data: {
-      userId: purchaseData.userId,
-      tableNumber: purchaseData.tableNumber,
-      totalPrice: purchaseData.totalPrice,
-      status: purchaseData.status,
-    },
-  });
-  res.send({
-    message: "Update Product Success",
-    data: purchase,
-  });
+    const purchase = await patchPurchaseById(purchaseId, purchaseData);
+    res.send({
+      message: "Update Purchase Success",
+      data: purchase,
+    });
+  } catch (error) {
+    if (error.message === "Purchase Not Found") {
+      res.status(404).send({ error: error.message });
+    } else {
+      console.log(error);
+      res.status(500).send({ error: "Failed to update purchase" });
+    }
+  }
 });
 
 router.delete("/:id", async (req, res, next) => {
   const { id } = req.params;
   try {
-    await prisma.purchaseItem.deleteMany({
-      where: { purchaseId: parseInt(id, 10) },
-    });
-
-    await prisma.purchase.delete({
-      where: { id: parseInt(id, 10) },
-    });
-
-    res.status(200).json({ message: "Purchase deleted successfully" });
+    await deletePurchaseById(id);
+    res.status(200).send({ message: "Purchase deleted successfully" });
   } catch (error) {
-    console.error("Error deleting purchase data:", error);
-    res.status(500).json({ error: "Failed to delete purchase data" });
+    if (error.message === "Purchase Not Found") {
+      res.status(404).send({ error: error.message });
+    } else {
+      console.log(error);
+      res.status(500).send({ error: "Failed to delete purchase data" });
+    }
   }
 });
 
