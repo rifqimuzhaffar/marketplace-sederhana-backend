@@ -7,8 +7,10 @@ const {
   patchPurchaseById,
   deletePurchaseById,
 } = require("./purchase.service");
+const { verifyToken } = require("../../middlewares/auth");
+const isAdmin = require("../../middlewares/isAdmin");
 
-router.get("/", async (req, res, next) => {
+router.get("/", verifyToken, async (req, res, next) => {
   try {
     const purchases = await getAllPurchases();
     res.status(200).send({
@@ -20,7 +22,7 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-router.get("/:id", async (req, res, next) => {
+router.get("/:id", verifyToken, async (req, res, next) => {
   try {
     const purchaseId = parseInt(req.params.id);
 
@@ -35,7 +37,7 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
-router.post("/", async (req, res, next) => {
+router.post("/", verifyToken, async (req, res, next) => {
   const { userId, tableNumber, cart, status } = req.body;
   try {
     const purchase = await createPurchase(userId, tableNumber, cart, status);
@@ -52,7 +54,7 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-router.patch("/:id", async (req, res, next) => {
+router.patch("/:id", verifyToken, isAdmin, async (req, res, next) => {
   const purchaseId = parseInt(req.params.id);
   const purchaseData = req.body;
 
@@ -76,9 +78,13 @@ router.patch("/:id", async (req, res, next) => {
   }
 });
 
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", verifyToken, isAdmin, async (req, res, next) => {
   const { id } = req.params;
   try {
+    if (isNaN(id)) {
+      return res.status(400).send("ID is not a number");
+    }
+
     await deletePurchaseById(id);
     res.status(200).send({ message: "Purchase deleted successfully" });
   } catch (error) {
