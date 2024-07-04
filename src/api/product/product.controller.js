@@ -6,8 +6,7 @@ const {
   deleteProductById,
   patchProductById,
 } = require("./product.service");
-const { verifyToken } = require("../../middlewares/auth");
-const isAdmin = require("../../middlewares/isAdmin");
+const { verifyToken, isAdmin } = require("../../middlewares/auth");
 const { upload } = require("../../middlewares/upload");
 const router = express.Router();
 
@@ -50,11 +49,24 @@ router.post(
         img_url: imageUrl,
         available: available === "true",
       };
-      const product = await createProduct(newProductsData);
-      res.status(201).send({
-        message: "Success Add Products",
-        data: product,
-      });
+
+      if (
+        !(
+          newProductsData.title &&
+          newProductsData.price &&
+          newProductsData.description &&
+          newProductsData.img_url &&
+          newProductsData.available
+        )
+      ) {
+        res.status(400).send("Some field are missing");
+      } else {
+        const product = await createProduct(newProductsData);
+        res.status(201).send({
+          message: "Success Add Products",
+          data: product,
+        });
+      }
     } catch (error) {
       res.status(400).send(error.message);
     }

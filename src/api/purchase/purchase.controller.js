@@ -7,8 +7,7 @@ const {
   patchPurchaseById,
   deletePurchaseById,
 } = require("./purchase.service");
-const { verifyToken } = require("../../middlewares/auth");
-const isAdmin = require("../../middlewares/isAdmin");
+const { verifyToken, isAdmin } = require("../../middlewares/auth");
 
 router.get("/", verifyToken, async (req, res, next) => {
   try {
