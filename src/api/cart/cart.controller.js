@@ -6,8 +6,9 @@ const {
   patchCartById,
   deleteCartById,
 } = require("./cart.service");
+const { verifyToken } = require("../../middlewares/auth");
 
-router.get("/:userId", async (req, res, next) => {
+router.get("/:userId", verifyToken, async (req, res, next) => {
   try {
     const { userId } = req.params;
     if (isNaN(userId)) {
@@ -22,7 +23,7 @@ router.get("/:userId", async (req, res, next) => {
   }
 });
 
-router.post("/", async (req, res, next) => {
+router.post("/", verifyToken, async (req, res, next) => {
   const { userId, productId, quantity } = req.body;
 
   try {
@@ -37,7 +38,7 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-router.patch("/:id", async (req, res, next) => {
+router.patch("/:id", verifyToken, async (req, res, next) => {
   try {
     const { id } = req.params;
     const { quantity } = req.body;
@@ -54,7 +55,7 @@ router.patch("/:id", async (req, res, next) => {
   }
 });
 
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", verifyToken, async (req, res, next) => {
   try {
     const { id } = req.params;
     if (isNaN(id)) {

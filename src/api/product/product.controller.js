@@ -11,7 +11,7 @@ const isAdmin = require("../../middlewares/isAdmin");
 const { upload } = require("../../middlewares/upload");
 const router = express.Router();
 
-router.get("/", verifyToken, async (req, res, next) => {
+router.get("/", async (req, res, next) => {
   const products = await getAllProducts();
   res.send({
     message: "success",
@@ -19,7 +19,7 @@ router.get("/", verifyToken, async (req, res, next) => {
   });
 });
 
-router.get("/:id", verifyToken, async (req, res, next) => {
+router.get("/:id", async (req, res, next) => {
   try {
     const productId = parseInt(req.params.id);
 
