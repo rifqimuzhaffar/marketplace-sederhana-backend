@@ -1,5 +1,4 @@
 const express = require("express");
-const prisma = require("../../database");
 const {
   getAllProducts,
   getProductById,
@@ -9,6 +8,7 @@ const {
 } = require("./product.service");
 const { verifyToken } = require("../../middlewares/auth");
 const isAdmin = require("../../middlewares/isAdmin");
+const { upload } = require("../../middlewares/upload");
 const router = express.Router();
 
 router.get("/", verifyToken, async (req, res, next) => {
@@ -34,18 +34,32 @@ router.get("/:id", verifyToken, async (req, res, next) => {
   }
 });
 
-router.post("/", verifyToken, isAdmin, async (req, res, next) => {
-  try {
-    const newProductsData = req.body;
-    const product = await createProduct(newProductsData);
-    res.status(201).send({
-      message: "Success Add Products",
-      data: product,
-    });
-  } catch (error) {
-    res.status(400).send(error.message);
+router.post(
+  "/",
+  verifyToken,
+  isAdmin,
+  upload.single("image"),
+  async (req, res, next) => {
+    try {
+      const { title, price, description, available } = req.body;
+      const imageUrl = req.file ? req.file.path : "";
+      const newProductsData = {
+        title,
+        price: parseFloat(price),
+        description,
+        img_url: imageUrl,
+        available: available === "true",
+      };
+      const product = await createProduct(newProductsData);
+      res.status(201).send({
+        message: "Success Add Products",
+        data: product,
+      });
+    } catch (error) {
+      res.status(400).send(error.message);
+    }
   }
-});
+);
 
 router.patch("/:id", verifyToken, isAdmin, async (req, res, next) => {
   try {

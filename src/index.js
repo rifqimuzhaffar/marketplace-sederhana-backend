@@ -19,10 +19,12 @@ if (!process.env.JWT_SECRET) {
 const authController = require("./api/auth/auth.controller");
 const productsController = require("./api/product/product.controller");
 const cartsController = require("./api/cart/cart.controller");
+const purchasesController = require("./api/purchase/purchase.controller");
 
 app.use("/auth", authController);
 app.use("/products", productsController);
 app.use("/carts", cartsController);
+app.use("/purchases", purchasesController);
 
 const PORT = process.env.SERVER_PORT;
 app.listen(PORT, () => {

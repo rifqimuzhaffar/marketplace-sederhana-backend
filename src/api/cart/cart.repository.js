@@ -1,58 +1,67 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require("../../database");
 
-class CartRepository {
-  async createCart(userId, productId, quantity) {
-    const product = await prisma.product.findUnique({
-      where: { id: productId }
-    });
+const findCartItemById = async (id) => {
+  const cart = await prisma.cart.findUnique({
+    where: {
+      id: parseInt(id),
+    },
+  });
+  return cart;
+};
 
-    if (!product) throw new Error('Product not found');
+const findCartsByUserId = async (userId) => {
+  const userCarts = await prisma.user.findUnique({
+    where: {
+      id: parseInt(userId),
+    },
+    include: {
+      Carts: {
+        include: {
+          product: true,
+        },
+      },
+    },
+  });
+  return userCarts.Carts;
+};
 
-    const totalPrice = product.price * quantity;
+const insertProductToCart = async (userId, quantity, productId) => {
+  await prisma.cart.create({
+    data: {
+      quantity: parseInt(quantity),
+      userId: parseInt(userId),
+      productId: parseInt(productId),
+    },
+  });
+};
 
-    return prisma.cart.create({
-      data: {
-        userId,
-        productId,
-        quantity,
-        price: product.price,
-        totalPrice
-      }
-    });
-  }
+const updateQuantityByCartId = async (id, quantity) => {
+  const updatedCart = await prisma.cart.update({
+    where: {
+      id: parseInt(id),
+    },
+    data: {
+      quantity: parseInt(quantity),
+    },
+    include: {
+      product: true,
+    },
+  });
+  return updatedCart;
+};
 
-  async getCartByUserId(userId) {
-    return prisma.cart.findMany({
-      where: { userId },
-      include: { Product: true }
-    });
-  }
+const deleteCartItem = async (id) => {
+  await prisma.cart.delete({
+    where: {
+      id: parseInt(id),
+    },
+  });
+};
 
-  async updateCart(cartId, quantity) {
-    const cart = await prisma.cart.findUnique({
-      where: { id: cartId },
-      include: { Product: true }
-    });
-
-    if (!cart) throw new Error('Cart not found');
-
-    const totalPrice = cart.Product.price * quantity;
-
-    return prisma.cart.update({
-      where: { id: cartId },
-      data: {
-        quantity,
-        totalPrice
-      }
-    });
-  }
-
-  async deleteCart(cartId) {
-    return prisma.cart.delete({
-      where: { id: cartId }
-    });
-  }
-}
-
-module.exports = new CartRepository();
+module.exports = {
+  findCartsByUserId,
+  insertProductToCart,
+  updateQuantityByCartId,
+  deleteCartItem,
+  findCartItemById,
+};

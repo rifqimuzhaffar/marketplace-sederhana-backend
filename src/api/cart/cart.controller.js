@@ -1,84 +1,72 @@
-const prisma = require("../../database");
 const express = require("express");
 const router = express.Router();
+const {
+  getCartsByUserId,
+  addProductToCart,
+  patchCartById,
+  deleteCartById,
+} = require("./cart.service");
 
-// Menambahkan item ke keranjang
-router.post("/add", async (req, res, next) => {
-  const { userId, productId, quantity } = req.body;
-
+router.get("/:userId", async (req, res, next) => {
   try {
-    const cart = await prisma.cart.upsert({
-      where: { userId: userId },
-      create: { userId: userId },
-      update: {},
-    });
+    const { userId } = req.params;
+    if (isNaN(userId)) {
+      return res.status(400).send("ID is not a number");
+    }
 
-    const cartItem = await prisma.cartItem.upsert({
-      where: { cartId_productId: { cartId: cart.id, productId: productId } },
-      create: {
-        cartId: cart.id,
-        productId: productId,
-        quantity: quantity,
-      },
-      update: {
-        quantity: {
-          increment: quantity,
-        },
-      },
-    });
+    const userCarts = await getCartsByUserId(userId);
 
-    res.json(cartItem);
+    res.status(200).send(userCarts);
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: "Something went wrong" });
+    res.status(400).send(error.message);
   }
 });
 
-// Melihat keranjang
-// exports.viewCart = async (req, res) => {
-//   const { userId } = req.params;
+router.post("/", async (req, res, next) => {
+  const { userId, productId, quantity } = req.body;
 
-//   try {
-//     const cart = await prisma.cart.findUnique({
-//       where: { userId: parseInt(userId) },
-//       include: { items: true },
-//     });
+  try {
+    const userCart = await addProductToCart(userId, productId, quantity);
 
-//     res.json(cart);
-//   } catch (error) {
-//     res.status(500).json({ error: "Something went wrong" });
-//   }
-// };
+    res.status(200).send({
+      message: "Success Add Product to Cart",
+      data: userCart,
+    });
+  } catch (error) {
+    res.status(400).send(error.message);
+  }
+});
 
-// // Memperbarui item dalam keranjang
-// exports.updateCartItem = async (req, res) => {
-//   const { cartItemId, quantity } = req.body;
+router.patch("/:id", async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { quantity } = req.body;
 
-//   try {
-//     const cartItem = await prisma.cartItem.update({
-//       where: { id: cartItemId },
-//       data: { quantity: quantity },
-//     });
+    if (isNaN(id)) {
+      return res.status(400).send("ID is not a number");
+    }
 
-//     res.json(cartItem);
-//   } catch (error) {
-//     res.status(500).json({ error: "Something went wrong" });
-//   }
-// };
+    const updatedCart = await patchCartById(id, quantity);
 
-// // Menghapus item dari keranjang
-// exports.removeCartItem = async (req, res) => {
-//   const { cartItemId } = req.body;
+    res.status(200).send(updatedCart);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
 
-//   try {
-//     await prisma.cartItem.delete({
-//       where: { id: cartItemId },
-//     });
+router.delete("/:id", async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (isNaN(id)) {
+      return res.status(400).send("ID is not a number");
+    }
 
-//     res.json({ message: "Item removed from cart" });
-//   } catch (error) {
-//     res.status(500).json({ error: "Something went wrong" });
-//   }
-// };
+    await deleteCartById(id);
+
+    res.status(200).send({ message: "Item removed from cart" });
+  } catch (error) {
+    res.status(400).json(error.message);
+  }
+});
 
 module.exports = router;
