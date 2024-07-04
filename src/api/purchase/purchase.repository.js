@@ -58,6 +58,14 @@ const insertPurchase = async (purchaseData) => {
   });
 };
 
+const deleteAllCartsByUserId = async (userId) => {
+  await prisma.cart.deleteMany({
+    where: {
+      userId: parseInt(userId, 10),
+    },
+  });
+};
+
 const editPurchase = async (purchaseId, purchaseData) => {
   const purchase = await prisma.purchase.update({
     where: {
@@ -73,6 +81,14 @@ const editPurchase = async (purchaseId, purchaseData) => {
   return purchase;
 };
 
+const deletePurchaseItemsByPurchaseId = async (id) => {
+  await prisma.purchaseItem.deleteMany({
+    where: {
+      purchaseId: parseInt(id, 10),
+    },
+  });
+};
+
 const deletePurchase = async (id) => {
   await prisma.purchase.delete({
     where: {
@@ -85,6 +101,8 @@ module.exports = {
   findAllPurchases,
   findPurchaseById,
   insertPurchase,
+  deleteAllCartsByUserId,
   editPurchase,
+  deletePurchaseItemsByPurchaseId,
   deletePurchase,
 };

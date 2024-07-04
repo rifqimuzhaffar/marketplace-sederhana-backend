@@ -1,10 +1,11 @@
-const prisma = require("../../database");
 const {
   findAllPurchases,
   findPurchaseById,
   insertPurchase,
   editPurchase,
   deletePurchase,
+  deleteAllCartsByUserId,
+  deletePurchaseItemsByPurchaseId,
 } = require("./purchase.repository");
 
 const getAllPurchases = async () => {
@@ -76,11 +77,7 @@ const createPurchase = async (userId, tableNumber, cart, status) => {
 
   const purchase = await insertPurchase(purchaseData);
 
-  await prisma.cart.deleteMany({
-    where: {
-      userId: parseInt(userId, 10),
-    },
-  });
+  await deleteAllCartsByUserId(userId);
 
   return purchase;
 };
@@ -93,13 +90,7 @@ const patchPurchaseById = async (purchaseId, purchaseData) => {
 
 const deletePurchaseById = async (id) => {
   await getPurchaseById(id);
-
-  await prisma.purchaseItem.deleteMany({
-    where: {
-      purchaseId: parseInt(id, 10),
-    },
-  });
-
+  await deletePurchaseItemsByPurchaseId(id);
   await deletePurchase(id);
 };
 
