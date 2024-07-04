@@ -1,10 +1,12 @@
-const prisma = require("../../database");
+const { findProductsById } = require("../product/product.repository");
 const {
   findCartsByUserId,
   insertProductToCart,
   updateQuantityByCartId,
   deleteCartItem,
   findCartItemById,
+  findExistingCartEntry,
+  updateCartEntry,
 } = require("./cart.repository");
 
 const getCartItemById = async (id) => {
@@ -20,22 +22,10 @@ const getCartsByUserId = async (userId) => {
 };
 
 const addProductToCart = async (userId, productId, quantity) => {
-  const existingCartEntry = await prisma.cart.findFirst({
-    where: {
-      userId: parseInt(userId),
-      productId: parseInt(productId),
-    },
-  });
+  const existingCartEntry = await findExistingCartEntry(userId, productId);
 
   if (existingCartEntry) {
-    await prisma.cart.update({
-      where: {
-        id: existingCartEntry.id,
-      },
-      data: {
-        quantity: existingCartEntry.quantity + parseInt(quantity),
-      },
-    });
+    await updateCartEntry(existingCartEntry.id, quantity);
   } else {
     await insertProductToCart(userId, quantity, productId);
   }
