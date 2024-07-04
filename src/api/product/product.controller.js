@@ -7,7 +7,7 @@ const {
   patchProductById,
 } = require("./product.service");
 const { verifyToken, isAdmin } = require("../../middlewares/auth");
-const { upload } = require("../../middlewares/upload");
+const { upload, deleteImage } = require("../../middlewares/upload");
 const router = express.Router();
 
 router.get("/", async (req, res, next) => {
@@ -47,50 +47,58 @@ router.post(
         price: parseFloat(price),
         description,
         img_url: imageUrl,
-        available: available === "true",
+        available,
       };
 
-      if (
-        !(
-          newProductsData.title &&
-          newProductsData.price &&
-          newProductsData.description &&
-          newProductsData.img_url &&
-          newProductsData.available
-        )
-      ) {
-        res.status(400).send("Some field are missing");
-      } else {
-        const product = await createProduct(newProductsData);
-        res.status(201).send({
-          message: "Success Add Products",
-          data: product,
-        });
-      }
+      const product = await createProduct(newProductsData);
+      res.status(201).send({
+        message: "Success Add Products",
+        data: product,
+      });
     } catch (error) {
       res.status(400).send(error.message);
     }
   }
 );
 
-router.patch("/:id", verifyToken, isAdmin, async (req, res, next) => {
-  try {
-    const productId = parseInt(req.params.id);
-    const productData = req.body;
+router.patch(
+  "/:id",
+  verifyToken,
+  isAdmin,
+  upload.single("image"),
+  async (req, res, next) => {
+    try {
+      const productId = parseInt(req.params.id);
 
-    if (isNaN(productId)) {
-      return res.status(400).send("ID is not a number");
+      if (isNaN(productId)) {
+        return res.status(400).send("ID is not a number");
+      }
+
+      const currentProduct = await getProductById(productId);
+      if (!currentProduct) {
+        return res.status(404).send("Product not found");
+      }
+
+      let productData = req.body;
+
+      if (req.file) {
+        const oldImageUrl = currentProduct.img_url;
+        if (oldImageUrl) {
+          await deleteImage(oldImageUrl);
+        }
+        productData.img_url = req.file.path;
+      }
+
+      const product = await patchProductById(productId, productData);
+      res.send({
+        message: "Update Product Success",
+        data: product,
+      });
+    } catch (error) {
+      res.status(400).send(error.message);
     }
-
-    const product = await patchProductById(productId, productData);
-    res.send({
-      message: "Update Product Success",
-      data: product,
-    });
-  } catch (error) {
-    res.status(400).send(error.message);
   }
-});
+);
 
 router.delete("/:id", verifyToken, isAdmin, async (req, res, next) => {
   try {

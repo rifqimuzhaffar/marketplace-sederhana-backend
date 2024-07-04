@@ -15,13 +15,14 @@ const findProductsById = async (id) => {
 };
 
 const insertProduct = async (productData) => {
+  const available = productData.available === "true";
   const product = await prisma.product.create({
     data: {
       title: productData.title,
       price: productData.price,
       description: productData.description,
       img_url: productData.img_url,
-      available: productData.available || true,
+      available: available,
     },
   });
   return product;

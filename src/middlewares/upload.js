@@ -18,9 +18,10 @@ const storage = new CloudinaryStorage({
   },
 });
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB max file size
+  limits: { fileSize: MAX_FILE_SIZE },
   fileFilter: (req, file, cb) => {
     if (!file.originalname.match(/\.(jpg|jpeg|png)$/i)) {
       return cb(new Error("Only jpg, jpeg, and png files are allowed!"), false);
@@ -29,4 +30,13 @@ const upload = multer({
   },
 });
 
-module.exports = { upload };
+const deleteImage = async (imageUrl) => {
+  try {
+    const imagePublicId = imageUrl.split("/").pop().split(".")[0];
+    await cloudinary.uploader.destroy(`tugas-coffeeshop/${imagePublicId}`);
+  } catch (error) {
+    throw new Error("Failed to delete image from Cloudinary");
+  }
+};
+
+module.exports = { upload, deleteImage };
