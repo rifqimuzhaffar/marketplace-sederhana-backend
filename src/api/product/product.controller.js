@@ -108,6 +108,9 @@ router.delete("/:id", verifyToken, isAdmin, async (req, res, next) => {
       return res.status(400).send("ID is not a number");
     }
 
+    const product = await getProductById(productId);
+    await deleteImage(product.img_url);
+
     await deleteProductById(productId);
 
     res.send({

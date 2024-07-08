@@ -41,8 +41,10 @@ CREATE TABLE `Cart` (
 -- CreateTable
 CREATE TABLE `Purchase` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `totalPrice` DOUBLE NOT NULL,
     `userId` INTEGER NOT NULL,
+    `tableNumber` VARCHAR(191) NOT NULL,
+    `totalPrice` DOUBLE NOT NULL,
+    `status` VARCHAR(191) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 

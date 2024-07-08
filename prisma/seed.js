@@ -28,32 +28,32 @@ async function main() {
   console.log(`Seeded ${users.count} users`);
 
   // Seed products
-  const products = await prisma.product.createMany({
-    data: [
-      {
-        title: "Product 1",
-        price: 10000,
-        description: "Description for product 1",
-        img_url: "https://via.placeholder.com/150",
-        available: true,
-      },
-      {
-        title: "Product 2",
-        price: 15000,
-        description: "Description for product 2",
-        img_url: "https://via.placeholder.com/150",
-        available: true,
-      },
-      {
-        title: "Product 3",
-        price: 20000,
-        description: "Description for product 3",
-        img_url: "https://via.placeholder.com/150",
-        available: true,
-      },
-    ],
-  });
-  console.log(`Seeded ${products.count} products`);
+  // const products = await prisma.product.createMany({
+  //   data: [
+  //     {
+  //       title: "Product 1",
+  //       price: 10000,
+  //       description: "Description for product 1",
+  //       img_url: "https://via.placeholder.com/150",
+  //       available: true,
+  //     },
+  //     {
+  //       title: "Product 2",
+  //       price: 15000,
+  //       description: "Description for product 2",
+  //       img_url: "https://via.placeholder.com/150",
+  //       available: true,
+  //     },
+  //     {
+  //       title: "Product 3",
+  //       price: 20000,
+  //       description: "Description for product 3",
+  //       img_url: "https://via.placeholder.com/150",
+  //       available: true,
+  //     },
+  //   ],
+  // });
+  // console.log(`Seeded ${products.count} products`);
 
   console.log("Seeding completed.");
 }
